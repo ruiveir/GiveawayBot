@@ -1,19 +1,22 @@
-const KEY_REGEX = /(key|giveaways?)/g
-
 window.$ = window.jQuery = require('jquery');
-
-$.ajax("https://www.reddit.com/r/FreeGamesOnSteam+SteamGifts+pcmasterrace+steamgiveaway/new/.json", {success: function(r){
-	var content = $("<ul>");
-
-	for (i in r.data.children){
-		var post = r.data.children[i].data;
+const {ipcRenderer, remote} = require("electron");
 
 
-		if (post.title.match(KEY_REGEX)){
-			console.log(post)
-			content.append('<li>' + post.title + new Date(1000*post.created_utc).toISOString() + '</li>');
+//jQuery(document).on('ready', () => {
+	ipcRenderer.on('scan-update', (event, posts) => {
+		var content = $("body ul").html('');
+
+		for (i in posts){
+			var post = jQuery('<li>' + posts[i].title + '</li>');
+			post.data('target', posts[i].url);
+
+			content.prepend(post);
 		}
-	}
 
-	$("body").html(content);
-}});
+		content.find("li").on("click", function(e) {
+			remote.shell.openExternal(jQuery(this).data('target'));
+		});
+	});
+
+	ipcRenderer.send("window-opened");
+//});
