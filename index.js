@@ -12,7 +12,7 @@ function pad(num, size) {
 		var content = $("body ul").html('');
 
 		posts.sort((a, b) => {
-			return parseInt(a.created_utc) < parseInt(b.created_utc);
+			return parseInt(b.created_utc) - parseInt(a.created_utc);
 		});
 
 		for (i in posts){

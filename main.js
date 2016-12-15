@@ -4,14 +4,14 @@ const notifier = require('node-notifier');
 
 const POST_COUNT = 200;
 const UPDATE_INTERVAL = 60;
-const KEY_REGEX = /(key|giveaways?|serial|free|giving)/g;
+const KEY_REGEX = /(key|giveaways?|serial|free|giving)/;
 const UNFILTERED_SUBS = ["FreeGameFindings", "FreeGamesOnSteam", "Freegamestuff", "giveaway", "steam_giveaway", "pcgiveaways", "steamgiveaway", "RandomActsOfGaming"];
 const TARGET_SUBS = ['FreeGameFindings', 'FreeGamesOnSteam', 'Freegamestuff', 'giveaway', 'steamgiveaway', 'steam_giveaway', 'RandomActsOfGaming', 'pcmasterrace', 'GiftofGames', 'randomactsofsteam', 'SecretSteamSanta', 'GiftOfGaben'];
 const SUB_FILTERS = {
-	default: [/\bkeys?\b/, /\bredeems?\b/, /\bgiving\b/, /\bgiveaways?\b/, /\bleftovers?\b/, /\bcodes?\b/, /\bserials?\b/],
-	pcmasterrace: [/\bkeys?\b/, /\bredeems?\b/, /\bgiving\b/, /\bgiveaways?\b/, /\bleftovers?\b/, /\bcodes?\b/, /\b[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\b/, /\b[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\b/],
-	GiftofGames: [/\[offer\]/],
-	RandomActsOfGaming: [/\[giveaway\]/]
+	default: [/\bkeys?\b/i, /\bredeems?\b/i, /\bgiving\b/i, /\bgiveaways?\b/i, /\bleftovers?\b/i, /\bcodes?\b/i, /\bserials?\b/i],
+	pcmasterrace: [/\bkeys?\b/i, /\bredeems?\b/i, /\bgiving\b/i, /\bgiveaways?\b/i, /\bleftovers?\b/i, /\bcodes?\b/i, /\b[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\b/i, /\b[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\b/i],
+	GiftofGames: [/\[offer\]/i],
+	RandomActsOfGaming: [/\[giveaway\]/i]
 };
 
 
@@ -78,7 +78,7 @@ function runScan(){
 				}
 
 				if (isRelevant){
-					filteredPosts.append(post); //push to 1st position
+					filteredPosts.push(post); //push to 1st position
 
 					notifier.notify({
 					  	title: 'New Hit',
