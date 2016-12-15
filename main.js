@@ -8,8 +8,7 @@ const KEY_REGEX = /(key|giveaways?|serial|free|giving)/;
 const UNFILTERED_SUBS = ["FreeGameFindings", "FreeGamesOnSteam", "Freegamestuff", "giveaway", "steam_giveaway", "pcgiveaways", "steamgiveaway", "RandomActsOfGaming"];
 const TARGET_SUBS = ['FreeGameFindings', 'FreeGamesOnSteam', 'Freegamestuff', 'giveaway', 'steamgiveaway', 'steam_giveaway', 'RandomActsOfGaming', 'pcmasterrace', 'GiftofGames', 'randomactsofsteam', 'SecretSteamSanta', 'GiftOfGaben'];
 const SUB_FILTERS = {
-	default: [/\bkeys?\b/i, /\bredeems?\b/i, /\bgiving\b/i, /\bgiveaways?\b/i, /\bleftovers?\b/i, /\bcodes?\b/i, /\bserials?\b/i],
-	pcmasterrace: [/\bkeys?\b/i, /\bredeems?\b/i, /\bgiving\b/i, /\bgiveaways?\b/i, /\bleftovers?\b/i, /\bcodes?\b/i, /\b[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\b/i, /\b[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\b/i],
+	default: [/\bkeys?\b/i, /\bredeems?\b/i, /\bgiving\b/i, /\bgiveaways?\b/i, /\bleftovers?\b/i, /\bcodes?\b/i, /\bserials?\b/i, /\b[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\b/i, /\b[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\b/i],
 	GiftofGames: [/\[offer\]/i],
 	RandomActsOfGaming: [/\[giveaway\]/i]
 };
