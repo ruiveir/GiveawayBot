@@ -2,10 +2,18 @@ const {app, BrowserWindow, dialog, ipcMain, Tray, Menu} = require('electron')
 const request = require('request')
 const notifier = require('node-notifier');
 
-
+const POST_COUNT = 200;
 const UPDATE_INTERVAL = 60;
-const KEY_REGEX = /(key|giveaways?|serial|free|giving)/g
-const UNFILTERED_SUBS = ["FreeGamesOnSteam", "steam_giveaway", "pcgiveaways", "steamgiveaway"]
+const KEY_REGEX = /(key|giveaways?|serial|free|giving)/g;
+const UNFILTERED_SUBS = ["FreeGameFindings", "FreeGamesOnSteam", "Freegamestuff", "giveaway", "steam_giveaway", "pcgiveaways", "steamgiveaway", "RandomActsOfGaming"];
+const TARGET_SUBS = ['FreeGameFindings', 'FreeGamesOnSteam', 'Freegamestuff', 'giveaway', 'steamgiveaway', 'steam_giveaway', 'RandomActsOfGaming', 'pcmasterrace', 'GiftofGames', 'randomactsofsteam', 'SecretSteamSanta', 'GiftOfGaben'];
+const SUB_FILTERS = {
+	default: [/\bkeys?\b/, /\bredeems?\b/, /\bgiving\b/, /\bgiveaways?\b/, /\bleftovers?\b/, /\bcodes?\b/, /\bserials?\b/],
+	pcmasterrace: [/\bkeys?\b/, /\bredeems?\b/, /\bgiving\b/, /\bgiveaways?\b/, /\bleftovers?\b/, /\bcodes?\b/, /\b[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\b/, /\b[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\-[a-zA-Z0-9]{5}\b/],
+	GiftofGames: [/\[offer\]/],
+	RandomActsOfGaming: [/\[giveaway\]/]
+};
+
 
 let tray, mainWindow;
 
@@ -40,7 +48,7 @@ function showMainWindow() {
 function runScan(){
 	console.log('Scanning...')
 	var options = {
-    	url     : 'http://www.reddit.com/r/FreeGamesOnSteam+SteamGifts+pcmasterrace+steamgiveaway+steam_giveaway+pcgiveaways/new/.json?limit=75',
+    	url     : 'http://www.reddit.com/r/' + TARGET_SUBS.join('+') + '/new/.json?limit='+POST_COUNT,
       	headers : {
         	'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0',
       	},
@@ -56,15 +64,21 @@ function runScan(){
 	    	for (i in posts){
 				var post = posts[i].data;
 
-				if (scannedList.indexOf(post.id) == -1 &&
-					(
-						UNFILTERED_SUBS.indexOf(post.subreddit) != -1 ||
-						post.title.match(KEY_REGEX) ||
-						(post.is_self && post.selftext.match(KEY_REGEX))
-					)
-				){
+				isRelevant = false;
 
-					filteredPosts.unshift(post); //push to 1st position
+				if (scannedList.indexOf(post.id) != -1) continue;
+
+				if (UNFILTERED_SUBS.indexOf(post.subreddit) != -1)
+					isRelevant = true;
+				else{
+					var filters = SUB_FILTERS[post.subreddit] ? SUB_FILTERS[post.subreddit] : SUB_FILTERS['default'];
+					for (i in filters)
+						if (post.title.match(filters[i]) || (post.is_self && post.selftext.match(filters[i])))
+							isRelevant = true;
+				}
+
+				if (isRelevant){
+					filteredPosts.append(post); //push to 1st position
 
 					notifier.notify({
 					  	title: 'New Hit',
