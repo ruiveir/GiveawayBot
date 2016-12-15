@@ -3,7 +3,7 @@ const request = require('request')
 const notifier = require('node-notifier');
 
 
-const UPDATE_INTERVAL = 30;
+const UPDATE_INTERVAL = 60;
 const KEY_REGEX = /(key|giveaways?|serial|free|giving)/g
 const UNFILTERED_SUBS = ["FreeGamesOnSteam", "steam_giveaway", "pcgiveaways", "steamgiveaway"]
 

@@ -10,7 +10,7 @@ const {ipcRenderer, remote} = require("electron");
 			var post = jQuery('<li>' + posts[i].title + '</li>');
 			post.data('target', posts[i].url);
 
-			content.prepend(post);
+			content.append(post);
 		}
 
 		content.find("li").on("click", function(e) {
