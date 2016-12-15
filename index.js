@@ -1,5 +1,5 @@
 window.$ = window.jQuery = require('jquery');
-const {ipcRenderer, remote} = require("electron");
+const {ipcRenderer, remote, shell} = require("electron");
 
 function pad(num, size) {
 	var s = num + "";
@@ -7,8 +7,38 @@ function pad(num, size) {
 	return s;
 }
 
+function timeSince(date) {
+
+    var seconds = Math.floor((new Date() - date) / 1000);
+
+    var interval = Math.floor(seconds / 31536000);
+
+    if (interval > 1) {
+        return interval + " years";
+    }
+    interval = Math.floor(seconds / 2592000);
+    if (interval > 1) {
+        return interval + " months";
+    }
+    interval = Math.floor(seconds / 86400);
+    if (interval > 1) {
+        return interval + " days";
+    }
+    interval = Math.floor(seconds / 3600);
+    if (interval > 1) {
+        return interval + " hours";
+    }
+    interval = Math.floor(seconds / 60);
+    if (interval > 1) {
+        return interval + " minutes";
+    }
+    return Math.floor(seconds) + " seconds";
+}
+
 //jQuery(document).on('ready', () => {
 	ipcRenderer.on('scan-update', (event, posts) => {
+		console.log('Got scan results.');
+
 		var content = $("body ul").html('');
 
 		posts.sort((a, b) => {
@@ -16,22 +46,33 @@ function pad(num, size) {
 		});
 
 		for (i in posts){
-			var dateCreated = new Date(posts[i].created_utc * 1000);
-
-			var post = jQuery('<li><a href="www.reddit.com'+posts[i].permalink+'" class="reddit">Reddit</a> <a href="'+posts[i].url+'" class="link">Link</a> ' + pad(dateCreated.getHours(), 2) + ':' + pad(dateCreated.getMinutes(), 2) + ':' + pad(dateCreated.getSeconds(), 2) + ' ' + pad(dateCreated.getDate(), 2) + '/' + pad(dateCreated.getMonth()+1, 2) + ' /r/' + posts[i].subreddit + ' - ' + posts[i].title + '</li>');
+			var post = jQuery('<li title="'+posts[i].title+'">'+
+				'<div class="img" style="background-image: url(' + (posts[i].thumbnail === 'self' || posts[i].thumbnail === 'default' ? 'images/reddit.png' : posts[i].thumbnail) + ');"></div>' +
+				'<h3>' +
+					posts[i].title +
+				'</h3>' +
+				'<p>' +
+					timeSince(new Date(posts[i].created_utc * 1000)) + ' ago on <b>' + posts[i].subreddit + '</b>' +
+					' (<a href="www.reddit.com'+posts[i].permalink+'" class="reddit">Comments</a>)' +
+					//', <a href="'+posts[i].url+'" class="link">Link</a>)' +
+				'</p>' +
+			'</li>');
 			post.data('link', posts[i].url);
 			post.data('reddit', 'www.reddit.com'+posts[i].permalink);
 
 			content.append(post);
 		}
 
-		content.find("li a").on("click", function(e) {
-			e.preventDefault();
+		content.find("li").on("click", function(e) {
 			var target = jQuery(e.target);
 
-			remote.shell.openExternal(jQuery(this).attr('href'));
+			if (target.is('a.reddit')){
+				shell.openExternal(jQuery(this).data('reddit'));
 
-			return false;
+				e.preventDefault();
+				return false;
+			}else
+				shell.openExternal(jQuery(this).data('link'));
 		});
 	});
 

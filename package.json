@@ -1,5 +1,6 @@
 {
   "name": "giveawaybot",
+  "title": "Giveaway Bot",
   "version": "0.0.1",
   "description": "Scans giveway sites for game keys",
   "main": "main.js",
@@ -19,10 +20,15 @@
   "homepage": "https://github.com/drakerui/GiveawayBot#readme",
   "dependencies": {
     "jquery": "^3.1.1",
-    "node-notifier": "^4.6.1"
+    "node-notifier": "^4.6.1",
+    "request": "^2.79.0"
   },
   "devDependencies": {
     "electron": "^1.4.12",
     "electron-builder": "^10.8.0"
+  },
+  "build": {
+    "appId": "com.drake.giveawaybot",
+    "category": "general"
   }
 }

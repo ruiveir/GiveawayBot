@@ -38,9 +38,10 @@ function createWindow () {
 }
 
 function showMainWindow() {
-	if (!mainWindow || mainWindow.isDestroyed())
+	if (!mainWindow || mainWindow.isDestroyed()){
 		mainWindow = createWindow();
-	else if (mainWindow && !mainWindow.isVisible())
+		mainWindow.setMenu(null)
+	}	else if (mainWindow && !mainWindow.isVisible())
 		mainWindow.show()
 }
 
@@ -104,7 +105,7 @@ function runScan(){
 }
 
 app.on('ready', () => {
-	tray = new Tray('icon.png')
+	tray = new Tray(app.getAppPath() + '/images/icon.png');
 
 	tray.on('click', showMainWindow)
 
