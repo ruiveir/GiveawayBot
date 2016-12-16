@@ -1,6 +1,7 @@
 const {app, BrowserWindow, dialog, ipcMain, Tray, Menu} = require('electron')
 const request = require('request')
 const notifier = require('node-notifier');
+const player = require('play-sound')(opts = {})
 
 const POST_COUNT = 200;
 const UPDATE_INTERVAL = 60;
@@ -45,8 +46,20 @@ function showMainWindow() {
 		mainWindow.show()
 }
 
+function pad(num, size) {
+	var s = num + "";
+	while (s.length < size) s = "0" + s;
+	return s;
+}
+
+function log(arg){
+	var date = new Date();
+
+	console.log("["+pad(date.getHours(), 2)+":"+pad(date.getMinutes(), 2)+":"+pad(date.getSeconds(), 2)+"]:", arg)
+}
+
 function runScan(){
-	console.log('Scanning...')
+	log('Scanning...')
 	var options = {
     	url     : 'http://www.reddit.com/r/' + TARGET_SUBS.join('+') + '/new/.json?limit='+POST_COUNT,
       	headers : {
@@ -57,48 +70,59 @@ function runScan(){
 
 	request(options, function (err, res, body) {
 	    if (err) {
-	      	console.log(err);
+	      	log(err);
 	    } else {
-	    	var posts = JSON.parse(body).data.children;
+	    	try{
+		    	var posts = JSON.parse(body).data.children;
 
-	    	for (i in posts){
-				var post = posts[i].data;
+		    	var oldLength = filteredPosts.length;
 
-				isRelevant = false;
+		    	for (i in posts){
+					var post = posts[i].data;
 
-				if (scannedList.indexOf(post.id) != -1) continue;
+					isRelevant = false;
 
-				if (UNFILTERED_SUBS.indexOf(post.subreddit) != -1)
-					isRelevant = true;
-				else{
-					var filters = SUB_FILTERS[post.subreddit] ? SUB_FILTERS[post.subreddit] : SUB_FILTERS['default'];
-					for (i in filters)
-						if (post.title.match(filters[i]) || (post.is_self && post.selftext.match(filters[i])))
-							isRelevant = true;
+					if (scannedList.indexOf(post.id) != -1) continue;
+
+					if (UNFILTERED_SUBS.indexOf(post.subreddit) != -1)
+						isRelevant = true;
+					else{
+						var filters = SUB_FILTERS[post.subreddit] ? SUB_FILTERS[post.subreddit] : SUB_FILTERS['default'];
+						for (i in filters)
+							if (post.title.match(filters[i]) || (post.is_self && post.selftext.match(filters[i])))
+								isRelevant = true;
+					}
+
+					if (isRelevant){
+						filteredPosts.push(post); //push to 1st position
+
+						notifier.notify({
+						  	title: 'New Hit',
+						  	message: post.title,
+						  	icon: app.getAppPath() + '/icon.png', // Absolute path (doesn't work on balloons)
+						  	sound: true, // Only Notification Center or Windows Toasters
+						  	wait: true // Wait with callback, until user action is taken against notification
+						}, function (err, response) {
+						  	// Response is response from notification
+						});
+					}
+
+					scannedList.push(post.id);
 				}
 
-				if (isRelevant){
-					filteredPosts.push(post); //push to 1st position
-
-					notifier.notify({
-					  	title: 'New Hit',
-					  	message: post.title,
-					  	icon: app.getAppPath() + '/icon.png', // Absolute path (doesn't work on balloons)
-					  	sound: true, // Only Notification Center or Windows Toasters
-					  	wait: true // Wait with callback, until user action is taken against notification
-					}, function (err, response) {
-					  	// Response is response from notification
+				if (filteredPosts.length != oldLength)
+					player.play("sounds/notify.mp3", (e) => {
+						if (e) log(e);
 					});
-				}
 
-				scannedList.push(post.id);
+				if (mainWindow && !mainWindow.isDestroyed())
+					mainWindow.webContents.send('scan-update', filteredPosts)
+			}catch(e){
+				log(e);
 			}
-
-			if (mainWindow && !mainWindow.isDestroyed())
-				mainWindow.webContents.send('scan-update', filteredPosts)
 	    }
 
-	    console.log('Scan finnished, waiting ' + UPDATE_INTERVAL + ' seconds.')
+	    log('Scan finnished, waiting ' + UPDATE_INTERVAL + ' seconds.')
 
 		setTimeout(runScan, UPDATE_INTERVAL * 1000);
 	});
