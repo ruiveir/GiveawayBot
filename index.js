@@ -1,4 +1,3 @@
-window.$ = window.jQuery = require('jquery');
 const {ipcRenderer, remote, shell} = require("electron");
 
 function pad(num, size) {
@@ -35,7 +34,7 @@ function timeSince(date) {
     return Math.floor(seconds) + " seconds";
 }
 
-//jQuery(document).on('ready', () => {
+function init() {
 	ipcRenderer.on('scan-update', (event, posts) => {
 		console.log('Got scan results.');
 
@@ -77,4 +76,6 @@ function timeSince(date) {
 	});
 
 	ipcRenderer.send("window-opened");
-//});
+}
+
+jQuery(window).on('load', init);
