@@ -38,12 +38,16 @@ function createWindow () {
 	return win;
 }
 
-function showMainWindow() {
+function toggleMainWindow(){
 	if (!mainWindow || mainWindow.isDestroyed()){
 		mainWindow = createWindow();
-		mainWindow.setMenu(null)
-	}	else if (mainWindow && !mainWindow.isVisible())
-		mainWindow.show()
+	}else{
+		if (mainWindow.isVisible()){
+			mainWindow.hide();
+		}else{
+			mainWindow.show();
+		}
+	}
 }
 
 function pad(num, size) {
@@ -111,7 +115,7 @@ function runScan(){
 				}
 
 				if (filteredPosts.length != oldLength)
-					player.play("sounds/notify.mp3", (e) => {
+					player.play("sounds/notify.ogg", (e) => {
 						if (e) log(e);
 					});
 
@@ -131,10 +135,10 @@ function runScan(){
 app.on('ready', () => {
 	tray = new Tray(app.getAppPath() + '/images/icon.png');
 
-	tray.on('click', showMainWindow)
+	tray.on('click', toggleMainWindow)
 
 	const contextMenu = Menu.buildFromTemplate([
-		{label: 'Show', click: showMainWindow},
+		{label: 'Show', click: toggleMainWindow},
 		{label: 'Close', click: function() {
 			app.quit();
 		}}
@@ -155,7 +159,7 @@ app.on('ready', () => {
 			mainWindow.webContents.send('scan-update', filteredPosts);
 	});
 
-	showMainWindow();
+	toggleMainWindow();
 });
 
 app.on('window-all-closed', () => {})
