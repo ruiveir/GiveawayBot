@@ -143,6 +143,15 @@ function runScan(){
 	});
 }
 
+if (app.makeSingleInstance((args, pwd) => {
+	if (mainWindow) {
+		if (mainWindow.isMinimized()) mainWindow.restore()
+	  	mainWindow.focus()
+
+		mainWindow.webContents.send('scan-update', filteredPosts);
+	}
+})) app.quit();
+
 app.on('ready', () => {
 	tray = new Tray(app.getAppPath() + '/images/icon.png');
 
@@ -183,9 +192,5 @@ app.on('ready', () => {
 
 	toggleMainWindow();
 
-	app.on('window-all-closed', () => {})
-
-	app.makeSingleInstance((args, pwd) => {
-		toggleMainWindow();
-	})
+	app.on('window-all-closed', () => {});
 });
