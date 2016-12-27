@@ -52,10 +52,11 @@ function init() {
 				'</h3>' +
 				'<p>' +
 					timeSince(new Date(posts[i].created_utc * 1000)) + ' ago on <b>' + posts[i].subreddit + '</b>' +
-					' (<a href="www.reddit.com'+posts[i].permalink+'" class="reddit">Comments</a>)' +
-					//', <a href="'+posts[i].url+'" class="link">Link</a>)' +
+					' (<a href="#" class="reddit">Comments</a>)' +
 				'</p>' +
+					'<a href="#" class="remove"><i class="fa fa-times" aria-hidden="false"></i></a>' +
 			'</li>');
+			post.data('id', posts[i].id);
 			post.data('link', posts[i].url);
 			post.data('reddit', 'www.reddit.com'+posts[i].permalink);
 
@@ -65,8 +66,14 @@ function init() {
 		content.find("li").on("click", function(e) {
 			e.preventDefault();
 
-			if (jQuery(e.target).is('a.reddit'))
+			var target = jQuery(e.target);
+
+			console.log(target)
+
+			if (target.is('a.reddit'))
 				shell.openExternal(jQuery(this).data('reddit'));
+			else if (target.is('a.remove') || target.parent().is('a.remove'))
+				ipcRenderer.send("remove-entry", jQuery(this).data('id'));
 			else
 				shell.openExternal(jQuery(this).data('link'));
 

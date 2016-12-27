@@ -23,6 +23,8 @@ function createWindow () {
 
 	win.loadURL(`file://${__dirname}/index.html`)
 
+	win.setMenuBarVisibility(false);
+
 	win.on('show', () => {
 		tray.setHighlightMode('always')
 	})
@@ -66,9 +68,7 @@ function runScan(){
 	log('Scanning...')
 	var options = {
     	url     : 'http://www.reddit.com/r/' + TARGET_SUBS.join('+') + '/new/.json?limit='+POST_COUNT,
-      	headers : {
-        	'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0',
-      	},
+      	headers : {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0'},
       	method  : 'GET'
   	};
 
@@ -163,6 +163,8 @@ app.on('ready', () => {
 
 	ipcMain.on('error', function(e){
 		console.log(e);
+
+		app.quit();
 	});
 
 	ipcMain.on("window-opened", () => {
@@ -170,7 +172,20 @@ app.on('ready', () => {
 			mainWindow.webContents.send('scan-update', filteredPosts);
 	});
 
-	toggleMainWindow();
-});
+	ipcMain.on("remove-entry", (e, id) => {
+		filteredPosts = filteredPosts.filter((entry) => {
+			return entry.id != id;
+		});
 
-app.on('window-all-closed', () => {})
+		if (mainWindow && !mainWindow.isDestroyed())
+			mainWindow.webContents.send('scan-update', filteredPosts);
+	});
+
+	toggleMainWindow();
+
+	app.on('window-all-closed', () => {})
+
+	app.makeSingleInstance((args, pwd) => {
+		toggleMainWindow();
+	})
+});
