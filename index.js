@@ -57,21 +57,17 @@ function init() {
 				'</p>' +
 			'</li>');
 			post.data('link', posts[i].url);
-			post.data('reddit', 'www.reddit.com'+posts[i].permalink);
+			post.data('reddit', 'https://www.reddit.com'+posts[i].permalink);
 
 			content.append(post);
 		}
 
 		content.find("li").on("click", function(e) {
-			var target = jQuery(e.target);
+			e.preventDefault();
 
-			if (target.is('a.reddit')){
-				shell.openExternal(jQuery(this).data('reddit'));
+			shell.openExternal($(this).data(jQuery(e.target).is('a.reddit') ? 'reddit' : 'link'));
 
-				e.preventDefault();
-				return false;
-			}else
-				shell.openExternal(jQuery(this).data('link'));
+			return false;
 		});
 	});
 
