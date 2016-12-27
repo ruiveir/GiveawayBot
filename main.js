@@ -1,7 +1,8 @@
-const {app, BrowserWindow, dialog, ipcMain, Tray, Menu} = require('electron')
+const {app, BrowserWindow, dialog, ipcMain, Tray, Menu, nativeImage, shell} = require('electron')
 const request = require('request')
 const notifier = require('node-notifier');
 const player = require('play-sound')(opts = {})
+const is = require('electron-is');
 
 const POST_COUNT = 200;
 const UPDATE_INTERVAL = 60;
@@ -15,9 +16,7 @@ const SUB_FILTERS = {
 };
 
 
-let tray, mainWindow;
-
-var scannedList = [], filteredPosts = [];
+let tray, mainWindow, scannedList = [], filteredPosts = [];
 
 function createWindow () {
 	win = new BrowserWindow({width: 1050, height: 600})
@@ -42,11 +41,12 @@ function toggleMainWindow(){
 	if (!mainWindow || mainWindow.isDestroyed()){
 		mainWindow = createWindow();
 	}else{
-		if (mainWindow.isVisible()){
-			mainWindow.hide();
-		}else{
+		if (mainWindow.isMinimized())
+			mainWindow.restore();
+		else if (mainWindow.isVisible())
+			mainWindow.close()
+		else
 			mainWindow.show();
-		}
 	}
 }
 
@@ -100,24 +100,35 @@ function runScan(){
 					if (isRelevant){
 						filteredPosts.push(post); //push to 1st position
 
-						notifier.notify({
-						  	title: 'New Hit',
-						  	message: post.title,
-						  	icon: app.getAppPath() + '/icon.png', // Absolute path (doesn't work on balloons)
-						  	sound: true, // Only Notification Center or Windows Toasters
-						  	wait: true // Wait with callback, until user action is taken against notification
-						}, function (err, response) {
-						  	// Response is response from notification
-						});
+						if (is.windows()){
+							tray.displayBalloon({
+								icon: nativeImage.createFromPath(app.getAppPath() + '/images/icon.png'),
+								title: "New hit!",
+								content: post.title
+							});
+						}else{
+							notifier.notify({
+							  	title: 'New Hit',
+							  	message: post.title,
+							  	icon: app.getAppPath() + '/icon.png', // Absolute path (doesn't work on balloons)
+							  	sound: true, // Only Notification Center or Windows Toasters
+							  	wait: true // Wait with callback, until user action is taken against notification
+							}, function (err, response) {
+							  	// Response is response from notification
+							});
+						}
 					}
 
 					scannedList.push(post.id);
 				}
 
 				if (filteredPosts.length != oldLength)
-					player.play("sounds/notify.ogg", (e) => {
-						if (e) log(e);
-					});
+					if (is.windows())
+						shell.beep();
+					else
+						player.play("sounds/notify.ogg", (e) => {
+							if (e) log(e);
+						});
 
 				if (mainWindow && !mainWindow.isDestroyed())
 					mainWindow.webContents.send('scan-update', filteredPosts)

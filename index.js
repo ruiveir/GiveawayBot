@@ -63,15 +63,14 @@ function init() {
 		}
 
 		content.find("li").on("click", function(e) {
-			var target = jQuery(e.target);
+			e.preventDefault();
 
-			if (target.is('a.reddit')){
+			if (jQuery(e.target).is('a.reddit'))
 				shell.openExternal(jQuery(this).data('reddit'));
-
-				e.preventDefault();
-				return false;
-			}else
+			else
 				shell.openExternal(jQuery(this).data('link'));
+
+			return false;
 		});
 	});
 
