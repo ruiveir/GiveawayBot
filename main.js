@@ -1,7 +1,8 @@
-const {app, BrowserWindow, dialog, ipcMain, Tray, Menu} = require('electron')
+const {app, BrowserWindow, dialog, ipcMain, Tray, Menu, nativeImage, shell} = require('electron')
 const request = require('request')
 const notifier = require('node-notifier');
 const player = require('play-sound')(opts = {})
+const is = require('electron-is');
 
 const POST_COUNT = 200;
 const UPDATE_INTERVAL = 60;
@@ -15,14 +16,14 @@ const SUB_FILTERS = {
 };
 
 
-let tray, mainWindow;
-
-var scannedList = [], filteredPosts = [];
+let tray, mainWindow, scannedList = [], filteredPosts = [];
 
 function createWindow () {
 	win = new BrowserWindow({width: 1050, height: 600})
 
 	win.loadURL(`file://${__dirname}/index.html`)
+
+	win.setMenuBarVisibility(false);
 
 	win.on('show', () => {
 		tray.setHighlightMode('always')
@@ -42,11 +43,12 @@ function toggleMainWindow(){
 	if (!mainWindow || mainWindow.isDestroyed()){
 		mainWindow = createWindow();
 	}else{
-		if (mainWindow.isVisible()){
-			mainWindow.hide();
-		}else{
+		if (mainWindow.isMinimized())
+			mainWindow.restore();
+		else if (mainWindow.isVisible())
+			mainWindow.close()
+		else
 			mainWindow.show();
-		}
 	}
 }
 
@@ -66,9 +68,7 @@ function runScan(){
 	log('Scanning...')
 	var options = {
     	url     : 'http://www.reddit.com/r/' + TARGET_SUBS.join('+') + '/new/.json?limit='+POST_COUNT,
-      	headers : {
-        	'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0',
-      	},
+      	headers : {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0'},
       	method  : 'GET'
   	};
 
@@ -100,24 +100,35 @@ function runScan(){
 					if (isRelevant){
 						filteredPosts.push(post); //push to 1st position
 
-						notifier.notify({
-						  	title: 'New Hit',
-						  	message: post.title,
-						  	icon: app.getAppPath() + '/icon.png', // Absolute path (doesn't work on balloons)
-						  	sound: true, // Only Notification Center or Windows Toasters
-						  	wait: true // Wait with callback, until user action is taken against notification
-						}, function (err, response) {
-						  	// Response is response from notification
-						});
+						if (is.windows()){
+							tray.displayBalloon({
+								icon: nativeImage.createFromPath(app.getAppPath() + '/images/icon.png'),
+								title: "New hit!",
+								content: post.title
+							});
+						}else{
+							notifier.notify({
+							  	title: 'New Hit',
+							  	message: post.title,
+							  	icon: app.getAppPath() + '/icon.png', // Absolute path (doesn't work on balloons)
+							  	sound: true, // Only Notification Center or Windows Toasters
+							  	wait: true // Wait with callback, until user action is taken against notification
+							}, function (err, response) {
+							  	// Response is response from notification
+							});
+						}
 					}
 
 					scannedList.push(post.id);
 				}
 
 				if (filteredPosts.length != oldLength)
-					player.play("sounds/notify.ogg", (e) => {
-						if (e) log(e);
-					});
+					if (is.windows())
+						shell.beep();
+					else
+						player.play("sounds/notify.ogg", (e) => {
+							if (e) log(e);
+						});
 
 				if (mainWindow && !mainWindow.isDestroyed())
 					mainWindow.webContents.send('scan-update', filteredPosts)
@@ -131,6 +142,15 @@ function runScan(){
 		setTimeout(runScan, UPDATE_INTERVAL * 1000);
 	});
 }
+
+if (app.makeSingleInstance((args, pwd) => {
+	if (mainWindow) {
+		if (mainWindow.isMinimized()) mainWindow.restore()
+	  	mainWindow.focus()
+
+		mainWindow.webContents.send('scan-update', filteredPosts);
+	}
+})) app.quit();
 
 app.on('ready', () => {
 	tray = new Tray(app.getAppPath() + '/images/icon.png');
@@ -152,6 +172,8 @@ app.on('ready', () => {
 
 	ipcMain.on('error', function(e){
 		console.log(e);
+
+		app.quit();
 	});
 
 	ipcMain.on("window-opened", () => {
@@ -159,7 +181,16 @@ app.on('ready', () => {
 			mainWindow.webContents.send('scan-update', filteredPosts);
 	});
 
-	toggleMainWindow();
-});
+	ipcMain.on("remove-entry", (e, id) => {
+		filteredPosts = filteredPosts.filter((entry) => {
+			return entry.id != id;
+		});
 
-app.on('window-all-closed', () => {})
+		if (mainWindow && !mainWindow.isDestroyed())
+			mainWindow.webContents.send('scan-update', filteredPosts);
+	});
+
+	toggleMainWindow();
+
+	app.on('window-all-closed', () => {});
+});
