@@ -13,7 +13,7 @@ html, body{
 }
 
 div {
-	margin: 20px;
+	height: 50px;
 }
 
 ul {
@@ -23,6 +23,15 @@ ul {
 
 h3 {
 	font: bold 20px;
+}
+
+li {
+	padding: 10px;
+	overflow: auto;
+	min-height: 50px;
+	overflow: hidden;
+	background: #333;
+	margin: 3px 0;
 }
 
 li div.img {
@@ -38,13 +47,23 @@ li p {
 	font-size: 12px;
 }
 
-li {
-	padding: 10px;
-	overflow: auto;
-	height: 50px;
-	overflow: hidden;
-	background: #333;
-	margin: 3px 0;
+li p.selftext {
+	white-space: pre-wrap;
+	font-size: 11pt;
+	background-color: #272727;
+	padding: 5px;
+	border-radius: 3px;
+	visibility: hidden;
+	opacity: 0;
+	height: 0;
+	transition: opacity 0.5s ease-in;
+}
+
+li.expanded p.selftext {
+	visibility: visible;
+	opacity: 1;
+	height: auto;
+	transition: opacity 0.5s ease-out;
 }
 
 li:hover {

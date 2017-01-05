@@ -3,6 +3,7 @@ const request = require('request')
 const notifier = require('node-notifier');
 const player = require('play-sound')(opts = {})
 const is = require('electron-is');
+const fs = require("fs");
 
 const POST_COUNT = 200;
 const UPDATE_INTERVAL = 60;
@@ -16,7 +17,11 @@ const SUB_FILTERS = {
 };
 
 
-let tray, mainWindow, scannedList = [], filteredPosts = [];
+let tray, mainWindow, filteredPosts = [], notGiveaways = [];
+
+function getUserHome() {
+  return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+}
 
 function createWindow () {
 	win = new BrowserWindow({width: 1050, height: 600})
@@ -32,9 +37,7 @@ function createWindow () {
 		tray.setHighlightMode('never')
 	})
 
-	win.on('closed', () => {
-
-	})
+	win.on('closed', () => {})
 
 	return win;
 }
@@ -82,11 +85,11 @@ function runScan(){
 		    	var oldLength = filteredPosts.length;
 
 		    	for (i in posts){
-					var post = posts[i].data;
+					let post = posts[i].data;
 
 					isRelevant = false;
 
-					if (scannedList.indexOf(post.id) != -1) continue;
+					if (notGiveaways.indexOf(post.id) != -1) continue;
 
 					if (UNFILTERED_SUBS.indexOf(post.subreddit) != -1)
 						isRelevant = true;
@@ -98,28 +101,40 @@ function runScan(){
 					}
 
 					if (isRelevant){
-						filteredPosts.push(post); //push to 1st position
+						var wasInlist = false;
+						filteredPosts.forEach((item, index) => {
+							if (item.id === post.id){
+								filteredPosts[index] = post;
+								wasInlist = true;
+							}
+						});
 
-						if (is.windows()){
-							tray.displayBalloon({
-								icon: nativeImage.createFromPath(app.getAppPath() + '/images/icon.png'),
-								title: "New hit!",
-								content: post.title
-							});
-						}else{
-							notifier.notify({
-							  	title: 'New Hit',
-							  	message: post.title,
-							  	icon: app.getAppPath() + '/icon.png', // Absolute path (doesn't work on balloons)
-							  	sound: true, // Only Notification Center or Windows Toasters
-							  	wait: true // Wait with callback, until user action is taken against notification
-							}, function (err, response) {
-							  	// Response is response from notification
-							});
+						if (!wasInlist){
+							filteredPosts.push(post);
+
+							if (is.windows()){
+								tray.displayBalloon({
+									icon: nativeImage.createFromPath(app.getAppPath() + '/images/icon.png'),
+									title: "New hit!",
+									content: post.title
+								});
+							}else{
+								notifier.notify({
+								  	title: 'New Hit',
+								  	message: post.title,
+								  	icon: app.getAppPath() + '/icon.png',
+								  	sound: true,
+								  	wait: true
+								}, function (err, response) {
+								  	log(response);
+								});
+							}
 						}
 					}
 
-					scannedList.push(post.id);
+
+
+					//scannedList.push(post.id);
 				}
 
 				if (filteredPosts.length != oldLength)
@@ -129,6 +144,9 @@ function runScan(){
 						player.play("sounds/notify.ogg", (e) => {
 							if (e) log(e);
 						});
+
+				var logPath = getUserHome()+ (process.platform == 'win32' ? "\\" : "/") + "posts.log";
+				fs.writeFileSync(logPath, JSON.stringify(filteredPosts))
 
 				if (mainWindow && !mainWindow.isDestroyed())
 					mainWindow.webContents.send('scan-update', filteredPosts)
@@ -168,6 +186,12 @@ app.on('ready', () => {
 
 	tray.setContextMenu(contextMenu)
 
+	var logPath = getUserHome()+ (process.platform == 'win32' ? "\\" : "/") + "posts.log";
+	var stats = fs.stat(logPath, (e, stats) => {
+		if (!e && stats && stats.isFile())
+			filteredPosts = JSON.parse(fs.readFileSync(logPath))
+	});
+
 	runScan();
 
 	ipcMain.on('error', function(e){
@@ -185,6 +209,8 @@ app.on('ready', () => {
 		filteredPosts = filteredPosts.filter((entry) => {
 			return entry.id != id;
 		});
+
+		notGiveaways.push(id);
 
 		if (mainWindow && !mainWindow.isDestroyed())
 			mainWindow.webContents.send('scan-update', filteredPosts);

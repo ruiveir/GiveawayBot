@@ -38,25 +38,39 @@ function init() {
 	ipcRenderer.on('scan-update', (event, posts) => {
 		console.log('Got scan results.');
 
-		var content = $("body ul").html('');
+		var content = $("body ul");
+
+		var expandedPosts = [];
+		content.find("li.expanded").each((i, elm) => {
+			expandedPosts.push(jQuery(elm).data("id"));
+		});
+
+		content.html('');
 
 		posts.sort((a, b) => {
 			return parseInt(b.created_utc) - parseInt(a.created_utc);
 		});
 
 		for (i in posts){
-			var post = jQuery('<li title="'+posts[i].title+'">'+
-				'<div class="img" style="background-image: url(' + (posts[i].thumbnail === 'self' || posts[i].thumbnail === 'default' ? 'images/reddit.png' : posts[i].thumbnail) + ');"></div>' +
-				'<h3>' +
-					posts[i].title +
-				'</h3>' +
-				'<p>' +
-					timeSince(new Date(posts[i].created_utc * 1000)) + ' ago on <b>' + posts[i].subreddit + '</b>' +
-					' (<a href="#" class="reddit">Comments</a>)' +
-				'</p>' +
+			var post = jQuery('<li title="'+posts[i].title+'" data-id="'+ posts[i].id +'" class="'+ (expandedPosts.indexOf(posts[i].id) != -1 ? "expanded" : "") +'">'+
+				'<div>' +
+					'<div class="img" style="background-image: url(' + (posts[i].thumbnail === 'self' || posts[i].thumbnail === 'default' ? 'images/reddit.png' : posts[i].thumbnail) + ');"></div>' +
+					'<h3>' +
+						posts[i].title +
+					'</h3>' +
+					'<p>' +
+						timeSince(new Date(posts[i].created_utc * 1000)) + ' ago on <b>' + posts[i].subreddit + '</b>' +
+						' (<a href="'+posts[i].url+'" class="reddit">Link</a>, ' +
+						' <a href="https://www.reddit.com'+posts[i].permalink+'" class="reddit">Comments</a>)' +
+					'</p>' +
 					'<a href="#" class="remove"><i class="fa fa-times" aria-hidden="false"></i></a>' +
+				'</div>' +
+				(posts[i].is_self ?
+					'<p class="selftext">'+
+						posts[i].selftext.replace( /\[([^\]]+)\]\(([^\)]+)\)/g, "<a href='$2'>$1</a>") +
+					'</p>' : ''
+				)+
 			'</li>');
-			post.data('id', posts[i].id);
 			post.data('link', posts[i].url);
 			post.data('reddit', 'https://www.reddit.com'+posts[i].permalink);
 
@@ -70,12 +84,12 @@ function init() {
 
 			console.log(target)
 
-			if (target.is('a.reddit'))
-				shell.openExternal(jQuery(this).data('reddit'));
-			else if (target.is('a.remove') || target.parent().is('a.remove'))
+			if (target.is('a.remove') || target.parent().is('a.remove'))
 				ipcRenderer.send("remove-entry", jQuery(this).data('id'));
+			else if (target.is('a'))
+				shell.openExternal(target.attr("href"));
 			else
-				shell.openExternal(jQuery(this).data('link'));
+				jQuery(this).toggleClass('expanded');
 
 			return false;
 		});
