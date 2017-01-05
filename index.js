@@ -68,8 +68,6 @@ function init() {
 
 			var target = jQuery(e.target);
 
-			console.log(target)
-
 			if (target.is('a.reddit'))
 				shell.openExternal(jQuery(this).data('reddit'));
 			else if (target.is('a.remove') || target.parent().is('a.remove'))
