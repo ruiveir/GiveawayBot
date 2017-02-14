@@ -19,16 +19,16 @@
   },
   "homepage": "https://github.com/drakerui/GiveawayBot#readme",
   "dependencies": {
-    "electron-is": "^2.4.0",
-    "font-awesome": "^4.7.0",
-    "jquery": "^3.1.1",
-    "node-notifier": "^4.6.1",
-    "play-sound": "^1.1.1",
-    "request": "^2.79.0"
+    "electron-is": ">=2.4.0",
+    "font-awesome": ">=4.7.0",
+    "jquery": ">=3.1.1",
+    "node-notifier": ">=4.6.1",
+    "play-sound": ">=1.1.1",
+    "request": ">=2.79.0"
   },
   "devDependencies": {
-    "electron": "^1.4.12",
-    "electron-builder": "^10.8.0"
+    "electron": ">=1.4.12",
+    "electron-builder": ">=10.8.0"
   },
   "build": {
     "appId": "com.drake.giveawaybot",

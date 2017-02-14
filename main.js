@@ -15,6 +15,7 @@ const SUB_FILTERS = {
 	GiftofGames: [/\[offer\]/i],
 	RandomActsOfGaming: [/\[giveaway\]/i]
 };
+const FLAIR_FILTER = /giveaway/i
 
 
 let tray, mainWindow, filteredPosts = [], notGiveaways = [];
@@ -91,7 +92,7 @@ function runScan(){
 
 					if (notGiveaways.indexOf(post.id) != -1) continue;
 
-					if (UNFILTERED_SUBS.indexOf(post.subreddit) != -1)
+					if (UNFILTERED_SUBS.indexOf(post.subreddit) != -1 || (post.link_flair_text && post.link_flair_text.match(FLAIR_FILTER)))
 						isRelevant = true;
 					else{
 						var filters = SUB_FILTERS[post.subreddit] ? SUB_FILTERS[post.subreddit] : SUB_FILTERS['default'];
@@ -146,7 +147,7 @@ function runScan(){
 						});
 
 				var logPath = getUserHome()+ (process.platform == 'win32' ? "\\" : "/") + "posts.log";
-				fs.writeFileSync(logPath, JSON.stringify(filteredPosts))
+				fs.writeFileSync(logPath, JSON.stringify(filteredPosts));
 
 				if (mainWindow && !mainWindow.isDestroyed())
 					mainWindow.webContents.send('scan-update', filteredPosts)
@@ -189,7 +190,9 @@ app.on('ready', () => {
 	var logPath = getUserHome()+ (process.platform == 'win32' ? "\\" : "/") + "posts.log";
 	var stats = fs.stat(logPath, (e, stats) => {
 		if (!e && stats && stats.isFile())
-			filteredPosts = JSON.parse(fs.readFileSync(logPath))
+			filteredPosts = JSON.parse(fs.readFileSync(logPath)).filter((post) => {
+				return new Date().valueOf() - 1000 * 60 * 60 * 24 * 5 < post.created_utc * 1000;
+			})
 	});
 
 	runScan();
