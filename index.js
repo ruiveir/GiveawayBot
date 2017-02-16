@@ -54,7 +54,7 @@ function init() {
 		for (i in posts){
 			var post = jQuery('<li title="'+posts[i].title+'" data-id="'+ posts[i].id +'" class="'+ (expandedPosts.indexOf(posts[i].id) != -1 ? "expanded" : "") +'">'+
 				'<div>' +
-					'<div class="img" style="background-image: url(' + (posts[i].thumbnail === 'self' || posts[i].thumbnail === 'default' ? 'images/reddit.png' : posts[i].thumbnail) + ');"></div>' +
+					'<div class="img" style="background-image: url(' + (posts[i].thumbnail === 'self' || posts[i].thumbnail === 'default' || posts[i].thumbnail === 'nsfw' ? 'images/reddit.png' : posts[i].thumbnail) + ');"></div>' +
 					'<h3>' +
 						posts[i].title +
 					'</h3>' +
@@ -79,6 +79,9 @@ function init() {
 
 		content.find("li").on("click", function(e) {
 			e.preventDefault();
+
+			if (jQuery(e.target).is(".selftext") || jQuery(e.target).parents(".selftext").length > 0)
+				return false;
 
 			var target = jQuery(e.target);
 

@@ -40,6 +40,8 @@ function createWindow () {
 
 	win.on('closed', () => {})
 
+	//win.toggleDevTools();
+
 	return win;
 }
 
