@@ -40,6 +40,16 @@ function createWindow () {
 
 	win.on('closed', () => {})
 
+	win.webContents.on('will-navigate', function (event, url) {
+		event.preventDefault();
+
+		shell.openExternal(url);
+	});
+
+	win.webContents.on('crashed', function (event) {
+		mainWindow = createWindow();
+	});
+
 	//win.toggleDevTools();
 
 	return win;
@@ -73,21 +83,21 @@ function log(arg){
 function runScan(){
 	log('Scanning...')
 	var options = {
-    	url     : 'http://www.reddit.com/r/' + TARGET_SUBS.join('+') + '/new/.json?limit='+POST_COUNT,
-      	headers : {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0'},
-      	method  : 'GET'
+		url	 : 'http://www.reddit.com/r/' + TARGET_SUBS.join('+') + '/new/.json?limit='+POST_COUNT,
+	  	headers : {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0'},
+	  	method  : 'GET'
   	};
 
 	request(options, function (err, res, body) {
-	    if (err) {
-	      	log(err);
-	    } else {
-	    	try{
-		    	var posts = JSON.parse(body).data.children;
+		if (err) {
+		  	log(err);
+		} else {
+			try{
+				var posts = JSON.parse(body).data.children;
 
-		    	var oldLength = filteredPosts.length;
+				var oldLength = filteredPosts.length;
 
-		    	for (i in posts){
+				for (i in posts){
 					let post = posts[i].data;
 
 					isRelevant = false;
@@ -156,9 +166,9 @@ function runScan(){
 			}catch(e){
 				log(e);
 			}
-	    }
+		}
 
-	    log('Scan finnished, waiting ' + UPDATE_INTERVAL + ' seconds.')
+		log('Scan finnished, waiting ' + UPDATE_INTERVAL + ' seconds.')
 
 		setTimeout(runScan, UPDATE_INTERVAL * 1000);
 	});

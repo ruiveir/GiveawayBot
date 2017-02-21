@@ -1,5 +1,7 @@
 const {ipcRenderer, remote, shell} = require("electron");
 
+const MOUSE_MOVE_DISTANCE = 10; //px
+
 function pad(num, size) {
 	var s = num + "";
 	while (s.length < size) s = "0" + s;
@@ -77,22 +79,26 @@ function init() {
 			content.append(post);
 		}
 
-		content.find("li").on("click", function(e) {
-			e.preventDefault();
-
-			if (jQuery(e.target).is(".selftext") || jQuery(e.target).parents(".selftext").length > 0)
-				return false;
+		var clickTime, clickPos;
+		content.find("li")
+		.on("mousedown", (e) => {
+			window.test = e;
+			clickTime = new Date().valueOf();
+			clickPos = {
+				x: e.pageX,
+				y: e.pageY
+			}
+		})
+		.on("mouseup", function(e) {
+			if (clickTime + 100 <= new Date().valueOf() || clickPos.x + MOUSE_MOVE_DISTANCE < e.pageX || clickPos.x - MOUSE_MOVE_DISTANCE > e.pageX || clickPos.y + MOUSE_MOVE_DISTANCE < e.pageY || clickPos.y - MOUSE_MOVE_DISTANCE > e.pageY)
+				return;
 
 			var target = jQuery(e.target);
 
 			if (target.is('a.remove') || target.parent().is('a.remove'))
 				ipcRenderer.send("remove-entry", jQuery(this).data('id'));
-			else if (target.is('a'))
-				shell.openExternal(target.attr("href"));
-			else
+			else if (!target.is('a'))
 				jQuery(this).toggleClass('expanded');
-
-			return false;
 		});
 	});
 
