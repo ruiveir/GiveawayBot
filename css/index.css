@@ -12,10 +12,6 @@ html, body{
 	background:	#222;
 }
 
-div {
-	height: 50px;
-}
-
 ul {
 	list-style-type: none;
 	width: 100%;
@@ -26,7 +22,7 @@ h3 {
 }
 
 li {
-	padding: 10px;
+	padding: 0;
 	overflow: auto;
 	min-height: 50px;
 	overflow: hidden;
@@ -34,9 +30,17 @@ li {
 	margin: 3px 0;
 }
 
-li div.img {
-	float: left;
-	margin: 0 15px 0 0;
+li div.metadata {
+	position: relative;
+	min-height: 50px;
+	padding: 5px 25px 5px 60px;
+}
+
+li div.metadata div.img {
+	position: absolute;
+
+	top: calc(50% - 25px);
+	left: 5px;
 	width: 50px;
 	height: 50px;
 	background: no-repeat scroll center center;
@@ -47,12 +51,17 @@ li p {
 	font-size: 12px;
 }
 
+li h3 {
+	white-space: normal;
+}
+
 li p.selftext {
 	white-space: pre-wrap;
 	font-size: 11pt;
-	background-color: #272727;
-	padding: 5px;
-	border-radius: 3px;
+	background-color: #444;
+	padding: 0;
+	margin: 0;
+	border-radius: 2px;
 	visibility: hidden;
 	opacity: 0;
 	height: 0;
@@ -64,17 +73,21 @@ li.expanded p.selftext {
 	opacity: 1;
 	height: auto;
 	transition: opacity 0.5s ease-out;
+	padding: 7px;
+	margin: 0 10px 10px 10px;
 }
 
 li:hover {
-	background: #555;
+	background: #444;
 	cursor: pointer;
 }
 
+li:hover p.selftext {
+	background-color: #555;
+}
+
 li a.remove{
-	position: relative;
-    top: -40px;
-    right: 0;
-    float: right;
-    text-decoration: none;
+    position: absolute;
+    top: 7px;
+    right: 7px;
 }

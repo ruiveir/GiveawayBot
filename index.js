@@ -55,16 +55,18 @@ function init() {
 
 		for (i in posts){
 			var post = jQuery('<li title="'+posts[i].title+'" data-id="'+ posts[i].id +'" class="'+ (expandedPosts.indexOf(posts[i].id) != -1 ? "expanded" : "") +'">'+
-				'<div>' +
-					'<div class="img" style="background-image: url(' + (posts[i].thumbnail === 'self' || posts[i].thumbnail === 'default' || posts[i].thumbnail === 'nsfw' ? 'images/reddit.png' : posts[i].thumbnail) + ');"></div>' +
-					'<h3>' +
-						posts[i].title +
-					'</h3>' +
-					'<p>' +
-						timeSince(new Date(posts[i].created_utc * 1000)) + ' ago on <b>' + posts[i].subreddit + '</b>' +
-						' (<a href="'+posts[i].url+'" class="reddit">Link</a>, ' +
-						' <a href="https://www.reddit.com'+posts[i].permalink+'" class="reddit">Comments</a>)' +
-					'</p>' +
+					'<div class="metadata">' +
+						'<div class="img" style="background-image: url(' + (posts[i].thumbnail === 'self' || posts[i].thumbnail === 'default' || posts[i].thumbnail === 'nsfw' ? 'images/reddit.png' : posts[i].thumbnail) + ');"></div>' +
+						'<div class="title">' +
+							'<h3>' +
+								posts[i].title +
+							'</h3>' +
+							'<p>' +
+								timeSince(new Date(posts[i].created_utc * 1000)) + ' ago on <b>' + posts[i].subreddit + '</b>' +
+								' (<a href="'+posts[i].url+'" class="reddit">Link</a>, ' +
+								' <a href="https://www.reddit.com'+posts[i].permalink+'" class="reddit">Comments</a>)' +
+							'</p>' +
+						'</div>' +
 					'<a href="#" class="remove"><i class="fa fa-times" aria-hidden="false"></i></a>' +
 				'</div>' +
 				(posts[i].is_self ?
