@@ -37,10 +37,14 @@ function timeSince(date) {
 }
 
 function init() {
+	$("body ul#menu li.clear").on("click", () => {
+		ipcRenderer.send("clear-all");
+	});
+
 	ipcRenderer.on('scan-update', (event, posts) => {
 		console.log('Got scan results.');
 
-		var content = $("body ul");
+		var content = $("body ul#items");
 
 		var expandedPosts = [];
 		content.find("li.expanded").each((i, elm) => {
