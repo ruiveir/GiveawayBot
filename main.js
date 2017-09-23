@@ -223,6 +223,8 @@ app.on('ready', () => {
 	});
 
 	ipcMain.on('clear-all', function(e){
+		notGiveaways.concat(filteredPosts);
+
 		filteredPosts = [];
 
 		mainWindow.webContents.send('scan-update', filteredPosts);
