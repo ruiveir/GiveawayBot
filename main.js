@@ -223,7 +223,8 @@ app.on('ready', () => {
 	});
 
 	ipcMain.on('clear-all', function(e){
-		notGiveaways.concat(filteredPosts);
+		for (p of filteredPosts)
+			notGiveaways.push(p.id);
 
 		filteredPosts = [];
 
